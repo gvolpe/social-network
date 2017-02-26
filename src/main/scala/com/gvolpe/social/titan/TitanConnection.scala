@@ -13,12 +13,8 @@ trait TitanConnection {
   protected def createIndices(graph: TitanGraph): Unit = {
     graph.tx().rollback() //Never create new indexes while a transaction is active
     val mgmt = graph.openManagement()
-    val installationKey = mgmt.getOrCreatePropertyKey("installationId")
-    val lampKey         = mgmt.getOrCreatePropertyKey("lampId")
-    val gatewayKey      = mgmt.getOrCreatePropertyKey("gatewayId")
-    mgmt.buildIndex("byInstallationId", classOf[Vertex]).addKey(installationKey).buildCompositeIndex()
-    mgmt.buildIndex("byLampId", classOf[Vertex]).addKey(lampKey).buildCompositeIndex()
-    mgmt.buildIndex("byGatewayId", classOf[Vertex]).addKey(gatewayKey).buildCompositeIndex()
+    val friendKey = mgmt.getOrCreatePropertyKey("friendId")
+    mgmt.buildIndex("byFriendId", classOf[Vertex]).addKey(friendKey).buildCompositeIndex()
     mgmt.commit()
     graph.tx().commit()
   }
@@ -26,18 +22,12 @@ trait TitanConnection {
   def g: ScalaGraph[TitanGraph]
 }
 
-trait EuhTitanConfiguration {
+trait SocialNetworkTitanConfiguration {
   self: TitanConnection =>
 
-  protected val InstallationId  = Key[Long]("installationId")
-  protected val LampId          = Key[Long]("lampId")
-  protected val GatewayId       = Key[Long]("gatewayId")
-
-  protected val LampLabel       = "lamp"
-  protected val GatewayLabel    = "gateway"
-
-  protected val LampLink        = "lamp-link"
-  protected val GatewayLink     = "gateway-link"
+  protected val FriendId      = Key[Long]("friendId")
+  protected val FriendLabel   = "friend"
+  protected val FriendLink    = "friend-link"
 }
 
 trait TitanCassandraConnection extends TitanConnection {
