@@ -38,6 +38,7 @@ trait SocialNetworkService extends SocialNetworkTitanConfiguration {
       Some(person)
   }
 
+  // TODO: Add validation for existent relationships
   def follow(from: Person, to: Person): Option[Friendship] =
     (findPerson(from.id), findPerson(to.id)) match {
       case (Some(f), Some(t)) =>
