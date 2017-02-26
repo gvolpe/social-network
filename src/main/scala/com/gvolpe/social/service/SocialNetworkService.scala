@@ -45,8 +45,8 @@ trait SocialNetworkService extends SocialNetworkTitanConfiguration {
           f <- g.V.has(PersonId, from.id)
           t <- g.V.has(PersonId, to.id)
         } yield {
-          f --- Following --> t
-          t --- FollowedBy  --> f
+          f --- Following  --> t
+          t --- FollowedBy --> f
         }
         friendship.headOption()
         g.tx().commit()
