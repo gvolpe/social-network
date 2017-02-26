@@ -13,8 +13,10 @@ trait TitanConnection {
   protected def createIndices(graph: TitanGraph): Unit = {
     graph.tx().rollback() //Never create new indexes while a transaction is active
     val mgmt = graph.openManagement()
-    val friendKey = mgmt.getOrCreatePropertyKey("friendId")
-    mgmt.buildIndex("byFriendId", classOf[Vertex]).addKey(friendKey).buildCompositeIndex()
+    val personIdKey   = mgmt.getOrCreatePropertyKey("personId")
+    val personNameKey = mgmt.getOrCreatePropertyKey("personName")
+    mgmt.buildIndex("byPersonId", classOf[Vertex]).addKey(personIdKey).buildCompositeIndex()
+    mgmt.buildIndex("byPersonName", classOf[Vertex]).addKey(personNameKey).buildCompositeIndex()
     mgmt.commit()
     graph.tx().commit()
   }
@@ -25,7 +27,9 @@ trait TitanConnection {
 trait SocialNetworkTitanConfiguration {
   self: TitanConnection =>
 
-  protected val FriendId      = Key[Long]("friendId")
+  protected val PersonId      = Key[Long]("personId")
+  protected val PersonName    = Key[String]("personName")
+  protected val PersonLabel   = "person"
   protected val FriendLabel   = "friend"
   protected val FriendLink    = "friend-link"
 }
