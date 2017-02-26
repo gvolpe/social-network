@@ -30,8 +30,8 @@ trait SocialNetworkTitanConfiguration {
   protected val PersonId      = Key[Long]("personId")
   protected val PersonName    = Key[String]("personName")
   protected val PersonLabel   = "person"
-  protected val FriendLabel   = "friend"
-  protected val FriendLink    = "friend-link"
+  protected val Following     = "following"
+  protected val FollowedBy    = "followedBy"
 }
 
 trait TitanCassandraConnection extends TitanConnection {
