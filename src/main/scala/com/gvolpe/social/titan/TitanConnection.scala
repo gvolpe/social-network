@@ -25,8 +25,6 @@ trait TitanConnection {
 }
 
 trait SocialNetworkTitanConfiguration {
-  self: TitanConnection =>
-
   protected val PersonId          = Key[Long]("personId")
   protected val PersonName        = Key[String]("personName")
   protected val PersonAge         = Key[Int]("personAge")

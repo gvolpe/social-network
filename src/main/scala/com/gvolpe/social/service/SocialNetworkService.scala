@@ -15,56 +15,77 @@ trait SocialNetworkService extends SocialNetworkTitanConfiguration {
 
   val logger = LoggerFactory.getLogger("SocialNetworkService")
 
+  private val mapPerson: Vertex => Person = p => Person(
+    p.value2(PersonId),
+    p.value2(PersonName),
+    p.value2(PersonAge),
+    p.value2(PersonCountry),
+    p.value2(PersonProfession)
+  )
+
   private def findPerson(personId: Long): Option[Person] = {
-    val person = for {
-      p <- g.V.has(PersonId, personId)
-    } yield Person(
-      personId,
-      p.value2(PersonName),
-      p.value2(PersonAge),
-      p.value2(PersonCountry),
-      p.value2(PersonProfession)
-    )
-    person.headOption()
+    g.V.has(PersonId, personId).map(mapPerson).headOption()
+  }
+
+  // TODO: Maybe also show the different paths if there's more than one?
+  def findPresidentByCommonConnections(personId: Long, country: String): Option[Person] = {
+    g.V.has(PersonId, personId)
+      .repeat(_.outE(Following).inV.has(PersonCountry, P.eq(country)).simplePath)
+      .until(_.has(PersonProfession, "President"))
+      .map(mapPerson)
+      .headOption()
+  }
+
+  def followersFromCount(personId: Long, country: String): Long = {
+    g.V.has(PersonId, personId)
+      .outE(FollowedBy)
+      .inV()
+      .has(PersonCountry, P.eq(country))
+      .count()
+      .head()
   }
 
   def findFollowersFrom(personId: Long, country: String) = {
-    val friends = for {
-      f <- g.V.has(PersonId, personId).outE(FollowedBy).inV().has(PersonCountry, P.eq(country))
-    } yield Person(
-      personId,
-      f.value2(PersonName),
-      f.value2(PersonAge),
-      f.value2(PersonCountry),
-      f.value2(PersonProfession)
-    )
-    friends.toList()
+    val persons = g.V.has(PersonId, personId)
+      .outE(FollowedBy)
+      .inV()
+      .has(PersonCountry, P.eq(country))
+      .map(mapPerson)
+    persons.toList()
+  }
+
+  def findFollowersSince(personId: Long, since: Instant) = {
+    val persons = g.V.has(PersonId, personId)
+      .outE(FollowedBy)
+      .has(TimestampKey, P.gte(since.toEpochMilli))
+      .inV()
+      .map(mapPerson)
+    persons.toList()
+  }
+
+  def findFirstFollowerOfTopOne(personId: Long) = {
+    val result = for {
+      f <- g.V.has(PersonId, personId).outE(Following).orderBy(TimestampKey.value).inV()
+      g <- g.V(f).hasLabel(PersonLabel).outE(FollowedBy).orderBy(TimestampKey.value).inV().map(mapPerson)
+    } yield (mapPerson(f), g)
+    result.headOption()
   }
 
   def findFollowersWithAgeRange(personId: Long, from: Int, to: Int) = {
-    val friends = for {
-      f <- g.V.has(PersonId, personId).outE(FollowedBy).inV().has(PersonAge, P.gte(from)).has(PersonAge, P.lte(to))
-    } yield Person(
-      personId,
-      f.value2(PersonName),
-      f.value2(PersonAge),
-      f.value2(PersonCountry),
-      f.value2(PersonProfession)
-    )
-    friends.toList()
+    val persons = g.V.has(PersonId, personId)
+      .outE(FollowedBy)
+      .inV()
+      .has(PersonAge, P.gte(from)).has(PersonAge, P.lte(to))
+      .map(mapPerson)
+    persons.toList()
   }
 
   private def findPersonsBy(personId: Long, link: String): List[Person] = {
-    val friends = for {
-      f <- g.V.has(PersonId, personId).outE(link).inV()
-    } yield Person(
-      personId,
-      f.value2(PersonName),
-      f.value2(PersonAge),
-      f.value2(PersonCountry),
-      f.value2(PersonProfession)
-    )
-    friends.toList()
+    val persons = g.V.has(PersonId, personId)
+      .outE(link)
+      .inV()
+      .map(mapPerson)
+    persons.toList()
   }
 
   def findFollowers(personId: PersonIdentifier): List[Person] = findPersonsBy(personId.id, FollowedBy)
