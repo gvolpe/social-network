@@ -1,5 +1,7 @@
 package com.gvolpe.social.service
 
+import java.time.Instant
+
 import com.gvolpe.social.model.{Friendship, Person, PersonIdentifier}
 import com.gvolpe.social.titan.TitanInMemoryConnection
 import org.scalatest.prop.PropertyChecks
@@ -21,7 +23,7 @@ class SocialNetworkServiceSpec extends SocialNetworkServiceFixture {
 
   forAll(createFollowersExample) { (description, from, to) =>
     it should description in {
-      TestSocialNetworkService.follow(from, to) should be (Some(Friendship(from, to)))
+      TestSocialNetworkService.follow(from, to) should be (Some(Friendship(from, to, Instant.now())))
     }
   }
 
@@ -46,11 +48,15 @@ trait SocialNetworkServiceFixture extends FlatSpecLike
 
   object TestSocialNetworkService extends SocialNetworkService with TitanInMemoryConnection
 
-  val p1 = Person(1, "Gabi")
-  val p2 = Person(2, "Damian")
-  val p3 = Person(3, "John")
-  val p4 = Person(4, "Mike")
-  val p5 = Person(5, "Chris")
+  val p1 = Person(1, "Gabi", 29, "Argentina", "Software Engineer")
+  val p2 = Person(2, "Damian", 29, "Argentina", "Software Engineer")
+  val p3 = Person(3, "John", 30, "Ireland", "Pilot")
+  val p4 = Person(4, "Mike", 32, "England", "Architect")
+  val p5 = Person(5, "Chris", 22, "Germany", "Marketing")
+  val p6 = Person(6, "Guille", 24, "Argentina", "Sales")
+  val p7 = Person(7, "Ivan", 21, "Argentina", "Student")
+  val p8 = Person(8, "Gustavo", 35, "Argentina", "Lawyer")
+  val p9 = Person(9, "Capusotto", 57, "Argentina", "President")
 
   val createPersonsExample = Table(
     ("description", "person"),

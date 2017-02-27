@@ -27,11 +27,17 @@ trait TitanConnection {
 trait SocialNetworkTitanConfiguration {
   self: TitanConnection =>
 
-  protected val PersonId      = Key[Long]("personId")
-  protected val PersonName    = Key[String]("personName")
-  protected val PersonLabel   = "person"
-  protected val Following     = "following"
-  protected val FollowedBy    = "followedBy"
+  protected val PersonId          = Key[Long]("personId")
+  protected val PersonName        = Key[String]("personName")
+  protected val PersonAge         = Key[Int]("personAge")
+  protected val PersonCountry     = Key[String]("personCountry")
+  protected val PersonProfession  = Key[String]("personProfession")
+
+  protected val TimestampKey      = Key[Long]("timestamp")
+
+  protected val PersonLabel       = "person"
+  protected val Following         = "following"
+  protected val FollowedBy        = "followedBy"
 }
 
 trait TitanCassandraConnection extends TitanConnection {
