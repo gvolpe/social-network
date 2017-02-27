@@ -5,6 +5,7 @@ import java.time.Instant
 import com.gvolpe.social.model.{Friendship, Person, PersonIdentifier}
 import com.gvolpe.social.titan.{SocialNetworkTitanConfiguration, TitanConnection, TitanInMemoryConnection}
 import gremlin.scala._
+import org.apache.tinkerpop.gremlin.process.traversal.P
 import org.slf4j.LoggerFactory
 
 object DefaultSocialNetworkService extends SocialNetworkService with TitanInMemoryConnection
@@ -25,6 +26,32 @@ trait SocialNetworkService extends SocialNetworkTitanConfiguration {
       p.value2(PersonProfession)
     )
     person.headOption()
+  }
+
+  def findFollowersFrom(personId: Long, country: String) = {
+    val friends = for {
+      f <- g.V.has(PersonId, personId).outE(FollowedBy).inV().has(PersonCountry, P.eq(country))
+    } yield Person(
+      personId,
+      f.value2(PersonName),
+      f.value2(PersonAge),
+      f.value2(PersonCountry),
+      f.value2(PersonProfession)
+    )
+    friends.toList()
+  }
+
+  def findFollowersWithAgeRange(personId: Long, from: Int, to: Int) = {
+    val friends = for {
+      f <- g.V.has(PersonId, personId).outE(FollowedBy).inV().has(PersonAge, P.gte(from)).has(PersonAge, P.lte(to))
+    } yield Person(
+      personId,
+      f.value2(PersonName),
+      f.value2(PersonAge),
+      f.value2(PersonCountry),
+      f.value2(PersonProfession)
+    )
+    friends.toList()
   }
 
   private def findPersonsBy(personId: Long, link: String): List[Person] = {
