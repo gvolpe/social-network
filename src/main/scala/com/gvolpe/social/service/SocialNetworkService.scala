@@ -3,37 +3,40 @@ package com.gvolpe.social.service
 import java.time.Instant
 
 import com.gvolpe.social.model.{Friendship, Person, PersonIdentifier}
-import com.gvolpe.social.titan.{SocialNetworkTitanConfiguration, TitanConnection, TitanInMemoryConnection}
+import com.gvolpe.social.titan.{TitanConnection, TitanInMemoryConnection}
+import com.gvolpe.social.titan.SocialNetworkTitanConfiguration._
 import gremlin.scala._
 import org.apache.tinkerpop.gremlin.process.traversal.P
 import org.slf4j.LoggerFactory
 
 object DefaultSocialNetworkService extends SocialNetworkService with TitanInMemoryConnection
 
-trait SocialNetworkService extends SocialNetworkTitanConfiguration {
+trait SocialNetworkService {
   self: TitanConnection =>
 
   val logger = LoggerFactory.getLogger("SocialNetworkService")
 
-  private val mapPerson: Vertex => Person = p => Person(
-    p.value2(PersonId),
-    p.value2(PersonName),
-    p.value2(PersonAge),
-    p.value2(PersonCountry),
-    p.value2(PersonProfession)
-  )
-
   private def findPerson(personId: Long): Option[Person] = {
-    g.V.has(PersonId, personId).map(mapPerson).headOption()
+    g.V.has(PersonId, personId).map(_.mapPerson).headOption()
   }
 
-  // TODO: Maybe also show the different paths if there's more than one?
   def findPresidentByCommonConnections(personId: Long, country: String): Option[Person] = {
     g.V.has(PersonId, personId)
       .repeat(_.outE(Following).inV.has(PersonCountry, P.eq(country)).simplePath)
       .until(_.has(PersonProfession, "President"))
-      .map(mapPerson)
+      .map(_.mapPerson)
       .headOption()
+  }
+
+  def findPathToPresident(personId: Long, country: String): List[Person] = {
+    val path = g.V.has(PersonId, personId)
+      .repeat(_.outE(Following).inV.has(PersonCountry, P.eq(country)).simplePath)
+      .until(_.has(PersonProfession, "President"))
+      .path()
+      .toList()
+    path.flatMap { p  =>
+      (0 until p.size()).map(i => personFromPath(p, i))
+    }.flatten
   }
 
   def followersFromCount(personId: Long, country: String): Long = {
@@ -50,7 +53,7 @@ trait SocialNetworkService extends SocialNetworkTitanConfiguration {
       .outE(FollowedBy)
       .inV()
       .has(PersonCountry, P.eq(country))
-      .map(mapPerson)
+      .map(_.mapPerson)
     persons.toList()
   }
 
@@ -59,15 +62,15 @@ trait SocialNetworkService extends SocialNetworkTitanConfiguration {
       .outE(FollowedBy)
       .has(TimestampKey, P.gte(since.toEpochMilli))
       .inV()
-      .map(mapPerson)
+      .map(_.mapPerson)
     persons.toList()
   }
 
   def findFirstFollowerOfTopOne(personId: Long) = {
     val result = for {
       f <- g.V.has(PersonId, personId).outE(Following).orderBy(TimestampKey.value).inV()
-      g <- g.V(f).hasLabel(PersonLabel).outE(FollowedBy).orderBy(TimestampKey.value).inV().map(mapPerson)
-    } yield (mapPerson(f), g)
+      g <- g.V(f).hasLabel(PersonLabel).outE(FollowedBy).orderBy(TimestampKey.value).inV()
+    } yield (f.mapPerson, g.mapPerson)
     result.headOption()
   }
 
@@ -76,7 +79,7 @@ trait SocialNetworkService extends SocialNetworkTitanConfiguration {
       .outE(FollowedBy)
       .inV()
       .has(PersonAge, P.gte(from)).has(PersonAge, P.lte(to))
-      .map(mapPerson)
+      .map(_.mapPerson)
     persons.toList()
   }
 
@@ -84,7 +87,7 @@ trait SocialNetworkService extends SocialNetworkTitanConfiguration {
     val persons = g.V.has(PersonId, personId)
       .outE(link)
       .inV()
-      .map(mapPerson)
+      .map(_.mapPerson)
     persons.toList()
   }
 

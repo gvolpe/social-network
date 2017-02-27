@@ -24,18 +24,18 @@ trait TitanConnection {
   def g: ScalaGraph[TitanGraph]
 }
 
-trait SocialNetworkTitanConfiguration {
-  protected val PersonId          = Key[Long]("personId")
-  protected val PersonName        = Key[String]("personName")
-  protected val PersonAge         = Key[Int]("personAge")
-  protected val PersonCountry     = Key[String]("personCountry")
-  protected val PersonProfession  = Key[String]("personProfession")
+object SocialNetworkTitanConfiguration {
+  val PersonId          = Key[Long]("personId")
+  val PersonName        = Key[String]("personName")
+  val PersonAge         = Key[Int]("personAge")
+  val PersonCountry     = Key[String]("personCountry")
+  val PersonProfession  = Key[String]("personProfession")
 
-  protected val TimestampKey      = Key[Long]("timestamp")
+  val TimestampKey      = Key[Long]("timestamp")
 
-  protected val PersonLabel       = "person"
-  protected val Following         = "following"
-  protected val FollowedBy        = "followedBy"
+  val PersonLabel       = "person"
+  val Following         = "following"
+  val FollowedBy        = "followedBy"
 }
 
 trait TitanCassandraConnection extends TitanConnection {
