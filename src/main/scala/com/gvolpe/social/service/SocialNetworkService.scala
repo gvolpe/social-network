@@ -20,75 +20,68 @@ trait SocialNetworkService {
     g.V.has(PersonId, personId).map(_.mapPerson).headOption()
   }
 
-  def findPresidentByCommonConnections(personId: Long, country: String): Option[Person] = {
+  private def findPresident(personId: Long, country: String) = {
     g.V.has(PersonId, personId)
       .repeat(_.outE(Following).inV.has(PersonCountry, P.eq(country)).simplePath)
       .until(_.has(PersonProfession, "President"))
-      .map(_.mapPerson)
-      .headOption()
   }
 
-  def findPathToPresident(personId: Long, country: String): List[Person] = {
-    val path = g.V.has(PersonId, personId)
-      .repeat(_.outE(Following).inV.has(PersonCountry, P.eq(country)).simplePath)
-      .until(_.has(PersonProfession, "President"))
-      .path()
-      .toList()
-    path.flatMap { p  =>
-      (0 until p.size()).map(i => personFromPath(p, i))
-    }.flatten
+  def findPresidentByCommonConnections(personId: PersonIdentifier, country: String): Option[Person] = {
+    findPresident(personId.id, country).map(_.mapPerson).headOption()
   }
 
-  def followersFromCount(personId: Long, country: String): Long = {
+  def findPathToPresident(personId: PersonIdentifier, country: String): List[Person] = {
+    val path = findPresident(personId.id, country).path().headOption().toList
+    path.flatMap { p  => (0 until p.size()).map(personFromPath(p, _)) }.flatten
+  }
+
+  private def followersFrom(personId: Long, country: String) = {
     g.V.has(PersonId, personId)
       .outE(FollowedBy)
       .inV()
       .has(PersonCountry, P.eq(country))
-      .count()
-      .head()
   }
 
-  def findFollowersFrom(personId: Long, country: String) = {
-    val persons = g.V.has(PersonId, personId)
-      .outE(FollowedBy)
-      .inV()
-      .has(PersonCountry, P.eq(country))
-      .map(_.mapPerson)
-    persons.toList()
+  def followersFromCount(personId: PersonIdentifier, country: String): Long = {
+    followersFrom(personId.id, country).count().head()
   }
 
-  def findFollowersSince(personId: Long, since: Instant) = {
-    val persons = g.V.has(PersonId, personId)
+  def findFollowersFrom(personId: PersonIdentifier, country: String) = {
+    followersFrom(personId.id, country).map(_.mapPerson).toList()
+  }
+
+  def findFollowersSince(personId: PersonIdentifier, since: Instant): List[Person] = {
+    g.V.has(PersonId, personId.id)
       .outE(FollowedBy)
       .has(TimestampKey, P.gte(since.toEpochMilli))
       .inV()
       .map(_.mapPerson)
-    persons.toList()
+      .toList()
   }
 
-  def findFirstFollowerOfTopOne(personId: Long) = {
+  def findFirstFollowerOfTopOne(personId: PersonIdentifier): Option[(Person, Person)] = {
     val result = for {
-      f <- g.V.has(PersonId, personId).outE(Following).orderBy(TimestampKey.value).inV()
+      f <- g.V.has(PersonId, personId.id).outE(Following).orderBy(TimestampKey.value).inV()
       g <- g.V(f).hasLabel(PersonLabel).outE(FollowedBy).orderBy(TimestampKey.value).inV()
     } yield (f.mapPerson, g.mapPerson)
     result.headOption()
   }
 
-  def findFollowersWithAgeRange(personId: Long, from: Int, to: Int) = {
-    val persons = g.V.has(PersonId, personId)
+  def findFollowersWithAgeRange(personId: PersonIdentifier, from: Int, to: Int): List[Person] = {
+    g.V.has(PersonId, personId.id)
       .outE(FollowedBy)
       .inV()
       .has(PersonAge, P.gte(from)).has(PersonAge, P.lte(to))
       .map(_.mapPerson)
-    persons.toList()
+      .toList()
   }
 
   private def findPersonsBy(personId: Long, link: String): List[Person] = {
-    val persons = g.V.has(PersonId, personId)
+    g.V.has(PersonId, personId)
       .outE(link)
       .inV()
       .map(_.mapPerson)
-    persons.toList()
+      .toList()
   }
 
   def findFollowers(personId: PersonIdentifier): List[Person] = findPersonsBy(personId.id, FollowedBy)
@@ -107,10 +100,20 @@ trait SocialNetworkService {
       Some(person)
   }
 
-  // TODO: Add validation for existent relationships
+  private def findRelationship(from: Person, to: Person): Option[Instant] = {
+    g.V.has(PersonId, from.id)
+      .outE()
+      .hasLabel(Following)
+      .inV()
+      .has(PersonId, to.id)
+      .value(TimestampKey)
+      .headOption()
+      .map(Instant.ofEpochMilli)
+  }
+
   def follow(from: Person, to: Person, timestamp: Instant = Instant.now()): Option[Friendship] =
-    (findPerson(from.id), findPerson(to.id)) match {
-      case (Some(f), Some(t)) =>
+    (findPerson(from.id), findPerson(to.id), findRelationship(from, to)) match {
+      case (Some(f), Some(t), None) =>
         val friendship = for {
           f <- g.V.has(PersonId, from.id)
           t <- g.V.has(PersonId, to.id)
