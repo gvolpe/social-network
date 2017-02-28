@@ -10,9 +10,9 @@ import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, FlatSpecLike, Match
 // TODO: Add failure scenarios like follow someone that does not exist or an existent follower
 class SocialNetworkServiceSpec extends SocialNetworkServiceFixture {
 
-  override def beforeEach() = {
-    createPersonsAndConnections()
-  }
+//  override def beforeEach() = {
+//    createPersonsAndConnections()
+//  }
 
   override def beforeAll() = {
     createPersonsAndConnections()

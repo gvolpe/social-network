@@ -2,7 +2,7 @@ package com.gvolpe.social.service
 
 import java.time.Instant
 
-import com.gvolpe.social.model.{Friendship, Person, PersonIdentifier}
+import com.gvolpe.social.model.{Country, Friendship, Person, PersonIdentifier}
 import com.gvolpe.social.titan.{TitanConnection, TitanInMemoryConnection}
 import com.gvolpe.social.titan.SocialNetworkTitanConfiguration._
 import gremlin.scala._
@@ -26,12 +26,12 @@ trait SocialNetworkService {
       .until(_.has(PersonProfession, "President"))
   }
 
-  def findPresidentByCommonConnections(personId: PersonIdentifier, country: String): Option[Person] = {
-    findPresident(personId.id, country).map(_.mapPerson).headOption()
+  def findPresidentByCommonConnections(personId: PersonIdentifier, country: Country): Option[Person] = {
+    findPresident(personId.id, country.value).map(_.mapPerson).headOption()
   }
 
-  def findPathToPresident(personId: PersonIdentifier, country: String): List[Person] = {
-    val path = findPresident(personId.id, country).path().headOption().toList
+  def findPathToPresident(personId: PersonIdentifier, country: Country): List[Person] = {
+    val path = findPresident(personId.id, country.value).path().headOption().toList
     path.flatMap { p  => (0 until p.size()).map(personFromPath(p, _)) }.flatten
   }
 
@@ -42,12 +42,12 @@ trait SocialNetworkService {
       .has(PersonCountry, P.eq(country))
   }
 
-  def followersFromCount(personId: PersonIdentifier, country: String): Long = {
-    followersFrom(personId.id, country).count().head()
+  def followersFromCount(personId: PersonIdentifier, country: Country): Long = {
+    followersFrom(personId.id, country.value).count().head()
   }
 
-  def findFollowersFrom(personId: PersonIdentifier, country: String) = {
-    followersFrom(personId.id, country).map(_.mapPerson).toList()
+  def findFollowersFrom(personId: PersonIdentifier, country: Country) = {
+    followersFrom(personId.id, country.value).map(_.mapPerson).toList()
   }
 
   def findFollowersSince(personId: PersonIdentifier, since: Instant): List[Person] = {
