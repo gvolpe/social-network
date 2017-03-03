@@ -22,9 +22,8 @@ package object service {
 
     def persons: List[Person] = {
       path.objects.toList.collect {
-        case v: Vertex  => List(v.mapPerson)
-        case _          => List.empty[Person]
-      }.flatten
+        case v: Vertex => v.mapPerson
+      }
     }
   }
 
