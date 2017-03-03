@@ -7,13 +7,13 @@ import org.apache.tinkerpop.gremlin.process.traversal.Path
 
 package object service {
 
-  implicit class VertexOps(p: Vertex) {
+  implicit class VertexOps(v: Vertex) {
     def mapPerson: Person = Person(
-      p.value2(PersonId),
-      p.value2(PersonName),
-      p.value2(PersonAge),
-      p.value2(PersonCountry),
-      p.value2(PersonProfession)
+      v.value2(PersonId),
+      v.value2(PersonName),
+      v.value2(PersonAge),
+      v.value2(PersonCountry),
+      v.value2(PersonProfession)
     )
   }
 
