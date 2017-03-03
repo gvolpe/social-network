@@ -2,12 +2,16 @@ package com.gvolpe.social.service
 
 import java.time.Instant
 
-import com.gvolpe.social.model.{Country, Friendship, Person, PersonIdentifier}
+import com.gvolpe.social.model._
 import com.gvolpe.social.titan.{TitanConnection, TitanInMemoryConnection}
 import com.gvolpe.social.titan.SocialNetworkTitanConfiguration._
 import gremlin.scala._
 import org.apache.tinkerpop.gremlin.process.traversal.P
 import org.slf4j.LoggerFactory
+
+import scalaz.\/
+import scalaz.concurrent.Task
+import scalaz.Scalaz._
 
 object DefaultSocialNetworkService extends SocialNetworkService with TitanInMemoryConnection
 
@@ -46,7 +50,7 @@ trait SocialNetworkService {
     followersFrom(personId.id, country.value).count().head()
   }
 
-  def findFollowersFrom(personId: PersonIdentifier, country: Country) = {
+  def findFollowersFrom(personId: PersonIdentifier, country: Country): List[Person] = {
     followersFrom(personId.id, country.value).map(_.mapPerson).toList()
   }
 
@@ -100,18 +104,16 @@ trait SocialNetworkService {
       Some(person)
   }
 
-  private def findRelationship(from: Person, to: Person): Option[Instant] = {
+  private def findRelationship(from: Person, to: Person): Option[Vertex] = {
     g.V.has(PersonId, from.id)
       .outE()
       .hasLabel(Following)
       .inV()
       .has(PersonId, to.id)
-      .value(TimestampKey)
       .headOption()
-      .map(Instant.ofEpochMilli)
   }
 
-  def follow(from: Person, to: Person, timestamp: Instant = Instant.now()): Option[Friendship] =
+  def follow(from: Person, to: Person, timestamp: Instant = Instant.now()): Task[FriendshipException \/ Friendship] =
     (findPerson(from.id), findPerson(to.id), findRelationship(from, to)) match {
       case (Some(f), Some(t), None) =>
         val friendship = for {
@@ -123,8 +125,10 @@ trait SocialNetworkService {
         }
         friendship.headOption()
         g.tx().commit()
-        Some(Friendship(from, to, timestamp))
-      case _ => None
+        Task.delay { Friendship(from, to, timestamp).right }
+      case (None, _, _)     => Task.delay { PersonNotFound(from).left }
+      case (_, None, _)     => Task.delay { PersonNotFound(to).left }
+      case (_, _, Some(f))  => Task.delay { FriendshipAlreadyExists(from, to).left }
     }
 
 }
