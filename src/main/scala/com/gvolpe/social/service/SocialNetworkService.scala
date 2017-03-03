@@ -107,12 +107,13 @@ trait SocialNetworkService {
       Some(person)
   }
 
-  private def findRelationship(from: Person, to: Person): Option[Vertex] = {
+  private def findRelationship(from: Person, to: Person): Option[Instant] = {
     g.V.has(PersonId, from.id)
       .outE()
       .hasLabel(Following)
-      .inV()
-      .has(PersonId, to.id)
+      .where(_.inV.has(PersonId, to.id))
+      .value(TimestampKey)
+      .map(Instant.ofEpochMilli)
       .headOption()
   }
 
