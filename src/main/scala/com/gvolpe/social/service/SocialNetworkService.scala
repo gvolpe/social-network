@@ -35,8 +35,11 @@ trait SocialNetworkService {
   }
 
   def findPathToPresident(personId: PersonIdentifier, country: Country): List[Person] = {
-    val path = findPresident(personId.id, country.value).path().headOption().toList
-    path.flatMap { p  => (0 until p.size()).map(personFromPath(p, _)) }.flatten
+    findPresident(personId.id, country.value)
+      .path()
+      .headOption()
+      .toList
+      .flatMap(_.persons)
   }
 
   private def followersFrom(personId: Long, country: String) = {

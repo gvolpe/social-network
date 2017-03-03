@@ -5,8 +5,6 @@ import com.gvolpe.social.titan.SocialNetworkTitanConfiguration._
 import gremlin.scala._
 import org.apache.tinkerpop.gremlin.process.traversal.Path
 
-import scala.util.{Failure, Success, Try}
-
 package object service {
 
   implicit class VertexOps(p: Vertex) {
@@ -19,10 +17,14 @@ package object service {
     )
   }
 
-  def personFromPath(path: Path, index: Int): List[Person] = {
-    Try(path.get[Vertex](index)) match {
-      case Success(v) => List(v.mapPerson)
-      case Failure(t) => List.empty[Person]
+  implicit class PathOps(path: Path) {
+    import scala.collection.JavaConversions._
+
+    def persons: List[Person] = {
+      path.objects.toList.collect {
+        case v: Vertex  => List(v.mapPerson)
+        case _          => List.empty[Person]
+      }.flatten
     }
   }
 
