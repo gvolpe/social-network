@@ -29,8 +29,8 @@ class SocialNetworkServiceValidationsSpec extends SocialNetworkServiceValidation
     service.createPerson(p1)
     service.createPerson(p2)
 
-    service.follow(p1, p2, timestamp).unsafePerformSync should be (\/-(Friendship(p1, p2, timestamp)))
-    service.follow(p1, p2, timestamp).unsafePerformSync should be (-\/(FriendshipAlreadyExists(p1, p2)))
+    service.createFollower(p1, p2, timestamp).unsafePerformSync should be (\/-(Friendship(p1, p2, timestamp)))
+    service.createFollower(p1, p2, timestamp).unsafePerformSync should be (-\/(FriendshipAlreadyExists(p1, p2)))
   }
 
   it should "not create a follower if one of the persons does not exist" in {
@@ -42,8 +42,8 @@ class SocialNetworkServiceValidationsSpec extends SocialNetworkServiceValidation
 
     service.createPerson(p1)
 
-    service.follow(p1, p2, timestamp).unsafePerformSync should be (-\/(PersonNotFound(p2)))
-    service.follow(p2, p1, timestamp).unsafePerformSync should be (-\/(PersonNotFound(p2)))
+    service.createFollower(p1, p2, timestamp).unsafePerformSync should be (-\/(PersonNotFound(p2)))
+    service.createFollower(p2, p1, timestamp).unsafePerformSync should be (-\/(PersonNotFound(p2)))
   }
 
 }

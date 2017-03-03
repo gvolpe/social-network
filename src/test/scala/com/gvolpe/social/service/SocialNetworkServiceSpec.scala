@@ -85,7 +85,7 @@ trait SocialNetworkServiceFixture extends FlatSpecLike
   val p9 = Person(9, "Capusotto", 57, "Argentina", "President")
 
   def follow(from: Person, to: Person, timestamp: Instant) = {
-    testService.follow(from, to, timestamp).unsafePerformSync
+    testService.createFollower(from, to, timestamp).unsafePerformSync
   }
 
   def createPersonsAndConnections() = {
@@ -140,17 +140,17 @@ trait SocialNetworkServiceFixture extends FlatSpecLike
 
   val followersByAgeExample = Table(
     ("description", "personId", "from", "to", "expected"),
-    (s"${p1.name}'s followers with ages between ", PersonIdentifier(p1.id), 20, 25, List(p6, p7)),
-    (s"${p2.name}'s followers with ages between ", PersonIdentifier(p2.id), 20, 25, List.empty[Person]),
-    (s"${p3.name}'s followers with ages between ", PersonIdentifier(p3.id), 20, 25, List.empty[Person]),
-    (s"${p4.name}'s followers with ages between ", PersonIdentifier(p4.id), 20, 25, List.empty[Person]),
-    (s"${p5.name}'s followers with ages between ", PersonIdentifier(p5.id), 20, 25, List.empty[Person]),
-    (s"${p6.name}'s followers with ages between ", PersonIdentifier(p6.id), 20, 25, List.empty[Person]),
-    (s"${p7.name}'s followers with ages between ", PersonIdentifier(p7.id), 20, 25, List.empty[Person]),
-    (s"${p8.name}'s followers with ages between ", PersonIdentifier(p8.id), 20, 25, List.empty[Person]),
-    (s"${p9.name}'s followers with ages between ", PersonIdentifier(p9.id), 20, 25, List.empty[Person]),
-    (s"${p1.name}'s followers with ages between ", PersonIdentifier(p1.id), 30, 40, List(p4)),
-    (s"${p9.name}'s followers with ages between ", PersonIdentifier(p9.id), 30, 40, List(p8))
+    (s"${p1.name}'s followers with ages between", PersonIdentifier(p1.id), 20, 25, List(p6, p7)),
+    (s"${p2.name}'s followers with ages between", PersonIdentifier(p2.id), 20, 25, List.empty[Person]),
+    (s"${p3.name}'s followers with ages between", PersonIdentifier(p3.id), 20, 25, List.empty[Person]),
+    (s"${p4.name}'s followers with ages between", PersonIdentifier(p4.id), 20, 25, List.empty[Person]),
+    (s"${p5.name}'s followers with ages between", PersonIdentifier(p5.id), 20, 25, List.empty[Person]),
+    (s"${p6.name}'s followers with ages between", PersonIdentifier(p6.id), 20, 25, List.empty[Person]),
+    (s"${p7.name}'s followers with ages between", PersonIdentifier(p7.id), 20, 25, List.empty[Person]),
+    (s"${p8.name}'s followers with ages between", PersonIdentifier(p8.id), 20, 25, List.empty[Person]),
+    (s"${p9.name}'s followers with ages between", PersonIdentifier(p9.id), 20, 25, List.empty[Person]),
+    (s"${p1.name}'s followers with ages between", PersonIdentifier(p1.id), 30, 40, List(p4)),
+    (s"${p9.name}'s followers with ages between", PersonIdentifier(p9.id), 30, 40, List(p8))
   )
 
   val followersFromCountryExample = Table(
@@ -164,14 +164,14 @@ trait SocialNetworkServiceFixture extends FlatSpecLike
 
   val presidentReachabilityExample = Table(
     ("description", "personId", "country", "expected", "path"),
-    (s"Can ${p1.name} reach the president by common connections of ${p1.country}", PersonIdentifier(p1.id), Country(p1.country), Some(p9), List(p1, p2, p8, p9)),
-    (s"Can ${p2.name} reach the president by common connections of ${p2.country}", PersonIdentifier(p2.id), Country(p2.country), Some(p9), List(p2, p8, p9)),
-    (s"Can ${p8.name} reach the president by common connections of ${p8.country}", PersonIdentifier(p8.id), Country(p8.country), Some(p9), List(p8, p9)),
-    (s"Can ${p9.name} reach the president by common connections of ${p9.country}", PersonIdentifier(p9.id), Country(p9.country), None, List.empty[Person]),
-    (s"Can ${p3.name} reach the president by common connections of ${p3.country}", PersonIdentifier(p3.id), Country(p3.country), None, List.empty[Person]),
-    (s"Can ${p4.name} reach the president by common connections of ${p4.country}", PersonIdentifier(p4.id), Country(p4.country), None, List.empty[Person]),
-    (s"Can ${p6.name} reach the president by common connections of ${p6.country}", PersonIdentifier(p6.id), Country(p6.country), Some(p9), List(p6, p1, p2, p8, p9)),
-    (s"Can ${p7.name} reach the president by common connections of ${p7.country}", PersonIdentifier(p7.id), Country(p7.country), Some(p9), List(p7, p1, p2, p8, p9))
+    (s"Can ${p1.name} reach the president of ${p1.country} by common connections?", PersonIdentifier(p1.id), Country(p1.country), Some(p9), List(p1, p2, p8, p9)),
+    (s"Can ${p2.name} reach the president of ${p2.country} by common connections?", PersonIdentifier(p2.id), Country(p2.country), Some(p9), List(p2, p8, p9)),
+    (s"Can ${p8.name} reach the president of ${p8.country} by common connections?", PersonIdentifier(p8.id), Country(p8.country), Some(p9), List(p8, p9)),
+    (s"Can ${p9.name} reach the president of ${p9.country} by common connections?", PersonIdentifier(p9.id), Country(p9.country), None, List.empty[Person]),
+    (s"Can ${p3.name} reach the president of ${p3.country} by common connections?", PersonIdentifier(p3.id), Country(p3.country), None, List.empty[Person]),
+    (s"Can ${p4.name} reach the president of ${p4.country} by common connections?", PersonIdentifier(p4.id), Country(p4.country), None, List.empty[Person]),
+    (s"Can ${p6.name} reach the president of ${p6.country} by common connections?", PersonIdentifier(p6.id), Country(p6.country), Some(p9), List(p6, p1, p2, p8, p9)),
+    (s"Can ${p7.name} reach the president of ${p7.country} by common connections?", PersonIdentifier(p7.id), Country(p7.country), Some(p9), List(p7, p1, p2, p8, p9))
   )
 
   val followersSinceDateExample = Table(

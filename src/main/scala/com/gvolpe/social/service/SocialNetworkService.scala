@@ -113,7 +113,7 @@ trait SocialNetworkService {
       .headOption()
   }
 
-  def follow(from: Person, to: Person, timestamp: Instant = Instant.now()): Task[FriendshipException \/ Friendship] =
+  def createFollower(from: Person, to: Person, timestamp: Instant = Instant.now()): Task[FriendshipException \/ Friendship] =
     (findPerson(from.id), findPerson(to.id), findRelationship(from, to)) match {
       case (Some(f), Some(t), None) =>
         val friendship = for {
