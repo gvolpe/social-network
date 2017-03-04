@@ -15,8 +15,10 @@ trait TitanConnection {
     val mgmt = graph.openManagement()
     val personIdKey   = mgmt.getOrCreatePropertyKey("personId")
     val personNameKey = mgmt.getOrCreatePropertyKey("personName")
+    val timestampKey  = mgmt.getOrCreatePropertyKey("timestamp")
     mgmt.buildIndex("byPersonId", classOf[Vertex]).addKey(personIdKey).buildCompositeIndex()
     mgmt.buildIndex("byPersonName", classOf[Vertex]).addKey(personNameKey).buildCompositeIndex()
+    mgmt.buildIndex("byTimestamp", classOf[Vertex]).addKey(timestampKey).buildCompositeIndex()
     mgmt.commit()
     graph.tx().commit()
   }

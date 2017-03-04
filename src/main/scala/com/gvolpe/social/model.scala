@@ -10,8 +10,8 @@ object model {
   case class Person(id: Long, name: String, age: Int, country: String, profession: String)
   case class Friendship(from: Person, to: Person, timestamp: Instant)
 
-  sealed trait FriendshipException extends Product with Serializable
-  case class PersonNotFound(person: Person) extends FriendshipException
-  case class FriendshipAlreadyExists(from: Person, to: Person) extends FriendshipException
+  sealed trait FriendshipValidation extends Product with Serializable
+  case class PersonNotFound(person: Person) extends FriendshipValidation
+  case class FriendshipAlreadyExists(from: Person, to: Person) extends FriendshipValidation
 
 }
